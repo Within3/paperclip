@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe Paperclip::UriAdapter do
   let(:content_type) { "image/png" }
@@ -6,8 +6,8 @@ describe Paperclip::UriAdapter do
 
   before do
     @open_return = StringIO.new("xxx")
-    @open_return.stubs(:content_type).returns(content_type)
-    @open_return.stubs(:meta).returns(meta)
+    allow(@open_return).to receive(:content_type).and_return(content_type)
+    allow(@open_return).to receive(:meta).and_return(meta)
     Paperclip::UriAdapter.register
   end
 
@@ -19,8 +19,8 @@ describe Paperclip::UriAdapter do
     let(:meta) { { "content-type" => "image/png" } }
 
     before do
-      Paperclip::UriAdapter.any_instance.
-        stubs(:download_content).returns(@open_return)
+      allow_any_instance_of(Paperclip::UriAdapter).
+        to receive(:download_content).and_return(@open_return)
 
       @uri = URI.parse("http://thoughtbot.com/images/thoughtbot-logo.png")
       @subject = Paperclip.io_adapters.for(@uri, hash_digest: Digest::MD5)
@@ -30,7 +30,7 @@ describe Paperclip::UriAdapter do
       assert_equal "thoughtbot-logo.png", @subject.original_filename
     end
 
-    it 'closes open handle after reading' do
+    it "closes open handle after reading" do
       assert_equal true, @open_return.closed?
     end
 
@@ -59,16 +59,15 @@ describe Paperclip::UriAdapter do
       assert_equal "xxx", @subject.read
     end
 
-    it 'accepts a content_type' do
-      @subject.content_type = 'image/png'
-      assert_equal 'image/png', @subject.content_type
+    it "accepts a content_type" do
+      @subject.content_type = "image/png"
+      assert_equal "image/png", @subject.content_type
     end
 
     it "accepts an original_filename" do
-      @subject.original_filename = 'image.png'
-      assert_equal 'image.png', @subject.original_filename
+      @subject.original_filename = "image.png"
+      assert_equal "image.png", @subject.original_filename
     end
-
   end
 
   context "a directory index url" do
@@ -76,8 +75,8 @@ describe Paperclip::UriAdapter do
     let(:meta) { { "content-type" => "text/html" } }
 
     before do
-      Paperclip::UriAdapter.any_instance.
-        stubs(:download_content).returns(@open_return)
+      allow_any_instance_of(Paperclip::UriAdapter).
+        to receive(:download_content).and_return(@open_return)
 
       @uri = URI.parse("http://thoughtbot.com")
       @subject = Paperclip.io_adapters.for(@uri)
@@ -94,8 +93,8 @@ describe Paperclip::UriAdapter do
 
   context "a url with query params" do
     before do
-      Paperclip::UriAdapter.any_instance.
-        stubs(:download_content).returns(@open_return)
+      allow_any_instance_of(Paperclip::UriAdapter).
+        to receive(:download_content).and_return(@open_return)
 
       @uri = URI.parse("https://github.com/thoughtbot/paperclip?file=test")
       @subject = Paperclip.io_adapters.for(@uri)
@@ -111,11 +110,12 @@ describe Paperclip::UriAdapter do
     let(:filename_from_path) { "paperclip" }
 
     before do
-      Paperclip::UriAdapter.any_instance.
-        stubs(:download_content).returns(@open_return)
+      allow_any_instance_of(Paperclip::UriAdapter).
+        to receive(:download_content).and_return(@open_return)
 
       @uri = URI.parse(
-        "https://github.com/thoughtbot/#{filename_from_path}?file=test")
+        "https://github.com/thoughtbot/#{filename_from_path}?file=test"
+      )
     end
 
     it "returns file name from path" do
@@ -165,7 +165,8 @@ describe Paperclip::UriAdapter do
 
       it "returns a file name" do
         @uri = URI.parse(
-          "https://github.com/thoughtbot/#{file_name}?file=test")
+          "https://github.com/thoughtbot/#{file_name}?file=test"
+        )
         @subject = Paperclip.io_adapters.for(@uri)
         assert_equal file_name, @subject.original_filename
       end
@@ -174,8 +175,8 @@ describe Paperclip::UriAdapter do
 
   context "a url with restricted characters in the filename" do
     before do
-      Paperclip::UriAdapter.any_instance.
-        stubs(:download_content).returns(@open_return)
+      allow_any_instance_of(Paperclip::UriAdapter).
+        to receive(:download_content).and_return(@open_return)
 
       @uri = URI.parse("https://github.com/thoughtbot/paper:clip.jpg")
       @subject = Paperclip.io_adapters.for(@uri)
@@ -192,9 +193,18 @@ describe Paperclip::UriAdapter do
 
   describe "#download_content" do
     before do
-      Paperclip::UriAdapter.any_instance.stubs(:open).returns(@open_return)
+      allowed_mock =
+        if RUBY_VERSION < '2.5'
+          allow_any_instance_of(Paperclip::UriAdapter)
+        else
+          allow(URI)
+        end
+
+      allowed_mock.to receive(:open).and_return(@open_return)
+
       @uri = URI.parse("https://github.com/thoughtbot/paper:clip.jpg")
       @subject = Paperclip.io_adapters.for(@uri)
+      @uri_opener = RUBY_VERSION < '2.5' ? @subject : URI
     end
 
     after do
@@ -203,7 +213,7 @@ describe Paperclip::UriAdapter do
 
     context "with default read_timeout" do
       it "calls open without options" do
-        @subject.expects(:open).with(@uri, {}).at_least_once
+        expect(@uri_opener).to receive(:open).with(@uri, {}).at_least(1).times
       end
     end
 
@@ -213,7 +223,8 @@ describe Paperclip::UriAdapter do
       end
 
       it "calls open with read_timeout option" do
-        @subject.expects(:open).with(@uri, read_timeout: 120).at_least_once
+        expect(@uri_opener)
+          .to receive(:open).with(@uri, read_timeout: 120).at_least(1).times
       end
     end
   end

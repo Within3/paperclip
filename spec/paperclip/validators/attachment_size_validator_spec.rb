@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe Paperclip::Validators::AttachmentSizeValidator do
   before do
@@ -8,22 +8,22 @@ describe Paperclip::Validators::AttachmentSizeValidator do
 
   def build_validator(options)
     @validator = Paperclip::Validators::AttachmentSizeValidator.new(options.merge(
-      attributes: :avatar
-    ))
+                                                                      attributes: :avatar
+                                                                    ))
   end
 
   def self.should_allow_attachment_file_size(size)
     context "when the attachment size is #{size}" do
       it "adds error to dummy object" do
-        @dummy.stubs(:avatar_file_size).returns(size)
+        allow(@dummy).to receive(:avatar_content_type).and_return(size)
         @validator.validate(@dummy)
         assert @dummy.errors[:avatar_file_size].blank?,
-          "Expect an error message on :avatar_file_size, got none."
+               "Expect an error message on :avatar_file_size, got none."
       end
 
       it "does not add error to the base dummy object" do
         assert @dummy.errors[:avatar].blank?,
-          "Error added to base attribute"
+               "Error added to base attribute"
       end
     end
   end
@@ -31,18 +31,18 @@ describe Paperclip::Validators::AttachmentSizeValidator do
   def self.should_not_allow_attachment_file_size(size, options = {})
     context "when the attachment size is #{size}" do
       before do
-        @dummy.stubs(:avatar_file_size).returns(size)
+        allow(@dummy).to receive(:avatar_file_size).and_return(size)
         @validator.validate(@dummy)
       end
 
       it "adds error to dummy object" do
         assert @dummy.errors[:avatar_file_size].present?,
-          "Unexpected error message on :avatar_file_size"
+               "Unexpected error message on :avatar_file_size"
       end
 
       it "adds error to the base dummy object" do
         assert @dummy.errors[:avatar].present?,
-          "Error not added to base attribute"
+               "Error not added to base attribute"
       end
 
       it "adds error to base object as a string" do
@@ -70,7 +70,7 @@ describe Paperclip::Validators::AttachmentSizeValidator do
 
     context "as a proc" do
       before do
-        build_validator in: lambda { |avatar| (5.kilobytes..10.kilobytes) }
+        build_validator in: lambda { |_avatar| (5.kilobytes..10.kilobytes) }
       end
 
       should_allow_attachment_file_size(7.kilobytes)
@@ -91,7 +91,7 @@ describe Paperclip::Validators::AttachmentSizeValidator do
 
     context "as a proc" do
       before do
-        build_validator greater_than: lambda { |avatar| 10.kilobytes }
+        build_validator greater_than: lambda { |_avatar| 10.kilobytes }
       end
 
       should_allow_attachment_file_size 11.kilobytes
@@ -111,7 +111,7 @@ describe Paperclip::Validators::AttachmentSizeValidator do
 
     context "as a proc" do
       before do
-        build_validator less_than: lambda { |avatar| 10.kilobytes }
+        build_validator less_than: lambda { |_avatar| 10.kilobytes }
       end
 
       should_allow_attachment_file_size 9.kilobytes
@@ -123,7 +123,7 @@ describe Paperclip::Validators::AttachmentSizeValidator do
     context "as numbers" do
       before do
         build_validator greater_than: 5.kilobytes,
-          less_than: 10.kilobytes
+                        less_than: 10.kilobytes
       end
 
       should_allow_attachment_file_size 7.kilobytes
@@ -133,8 +133,8 @@ describe Paperclip::Validators::AttachmentSizeValidator do
 
     context "as a proc" do
       before do
-        build_validator greater_than: lambda { |avatar| 5.kilobytes },
-          less_than: lambda { |avatar| 10.kilobytes }
+        build_validator greater_than: lambda { |_avatar| 5.kilobytes },
+                        less_than: lambda { |_avatar| 10.kilobytes }
       end
 
       should_allow_attachment_file_size 7.kilobytes
@@ -147,7 +147,7 @@ describe Paperclip::Validators::AttachmentSizeValidator do
     context "given a range" do
       before do
         build_validator in: (5.kilobytes..10.kilobytes),
-          message: "is invalid. (Between %{min} and %{max} please.)"
+                        message: "is invalid. (Between %{min} and %{max} please.)"
       end
 
       should_not_allow_attachment_file_size(
@@ -159,8 +159,8 @@ describe Paperclip::Validators::AttachmentSizeValidator do
     context "given :less_than and :greater_than" do
       before do
         build_validator less_than: 10.kilobytes,
-          greater_than: 5.kilobytes,
-          message: "is invalid. (Between %{min} and %{max} please.)"
+                        greater_than: 5.kilobytes,
+                        message: "is invalid. (Between %{min} and %{max} please.)"
       end
 
       should_not_allow_attachment_file_size(
@@ -174,7 +174,7 @@ describe Paperclip::Validators::AttachmentSizeValidator do
     context "given :less_than and :greater_than" do
       before do
         build_validator greater_than: 5.kilobytes,
-          less_than: 10.kilobytes
+                        less_than: 10.kilobytes
       end
 
       should_not_allow_attachment_file_size(
@@ -205,13 +205,103 @@ describe Paperclip::Validators::AttachmentSizeValidator do
     end
   end
 
+  context "with add_validation_errors_to not set (implicitly :both)" do
+    it "adds error to both attribute and base" do
+      build_validator in: (5.kilobytes..10.kilobytes)
+      allow(@dummy).to receive(:avatar_file_size).and_return(11.kilobytes)
+      @validator.validate(@dummy)
+
+      assert @dummy.errors[:avatar_file_size].present?,
+             "Error not added to attribute"
+
+      assert @dummy.errors[:avatar].present?,
+             "Error not added to base attribute"
+    end
+  end
+
+  context "with add_validation_errors_to set to :attribute globally" do
+    before do
+      Paperclip.options[:add_validation_errors_to] = :attribute
+    end
+
+    after do
+      Paperclip.options[:add_validation_errors_to] = :both
+    end
+
+    it "only adds error to attribute not base" do
+      build_validator in: (5.kilobytes..10.kilobytes)
+      allow(@dummy).to receive(:avatar_file_size).and_return(11.kilobytes)
+      @validator.validate(@dummy)
+
+      assert @dummy.errors[:avatar_file_size].present?,
+             "Error not added to attribute"
+
+      assert @dummy.errors[:avatar].blank?,
+             "Error added to base attribute"
+    end
+  end
+
+  context "with add_validation_errors_to set to :base globally" do
+    before do
+      Paperclip.options[:add_validation_errors_to] = :base
+    end
+
+    after do
+      Paperclip.options[:add_validation_errors_to] = :both
+    end
+
+    it "only adds error to base not attribute" do
+      build_validator in: (5.kilobytes..10.kilobytes)
+      allow(@dummy).to receive(:avatar_file_size).and_return(11.kilobytes)
+      @validator.validate(@dummy)
+
+      assert @dummy.errors[:avatar].present?,
+             "Error not added to base attribute"
+
+      assert @dummy.errors[:avatar_file_size].blank?,
+             "Error added to attribute"
+    end
+  end
+
+  context "with add_validation_errors_to set to :attribute" do
+    it "only adds error to attribute not base" do
+      build_validator in: (5.kilobytes..10.kilobytes),
+                      add_validation_errors_to: :attribute
+
+      allow(@dummy).to receive(:avatar_file_size).and_return(11.kilobytes)
+      @validator.validate(@dummy)
+
+      assert @dummy.errors[:avatar_file_size].present?,
+             "Error not added to attribute"
+
+      assert @dummy.errors[:avatar].blank?,
+             "Error added to base attribute"
+    end
+  end
+
+  context "with add_validation_errors_to set to :base" do
+    it "only adds error to base not attribute" do
+      build_validator in: (5.kilobytes..10.kilobytes),
+                      add_validation_errors_to: :base
+
+      allow(@dummy).to receive(:avatar_file_size).and_return(11.kilobytes)
+      @validator.validate(@dummy)
+
+      assert @dummy.errors[:avatar].present?,
+             "Error not added to base attribute"
+
+      assert @dummy.errors[:avatar_file_size].blank?,
+             "Error added to attribute"
+    end
+  end
+
   context "using the helper" do
     before do
       Dummy.validates_attachment_size :avatar, in: (5.kilobytes..10.kilobytes)
     end
 
     it "adds the validator to the class" do
-      assert Dummy.validators_on(:avatar).any?{ |validator| validator.kind == :attachment_size }
+      assert Dummy.validators_on(:avatar).any? { |validator| validator.kind == :attachment_size }
     end
   end
 
@@ -222,7 +312,7 @@ describe Paperclip::Validators::AttachmentSizeValidator do
       end
     end
 
-    (Paperclip::Validators::AttachmentSizeValidator::AVAILABLE_CHECKS).each do |argument|
+    Paperclip::Validators::AttachmentSizeValidator::AVAILABLE_CHECKS.each do |argument|
       it "does not raise arguemnt error if #{argument} was given" do
         build_validator argument => 5.kilobytes
       end

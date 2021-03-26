@@ -6,11 +6,11 @@ module Paperclip
       end
     end
 
-    REGEXP = /\Ahttps?:\/\//
+    REGEXP = /\Ahttps?:\/\//.freeze
 
     def initialize(target, options = {})
-      escaped = URI.escape(target)
-      super(URI(target == URI.unescape(target) ? escaped : target), options)
+      escaped = Paperclip::UrlGenerator.escape(target)
+      super(URI(target == Paperclip::UrlGenerator.unescape(target) ? escaped : target), options)
     end
   end
 end

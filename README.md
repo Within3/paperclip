@@ -1,8 +1,9 @@
 Paperclip
 =========
 
-# Deprecated
+We plan to support and maintain paperclip, as well as clean it up.
 
+<<<<<<< HEAD
 **[Paperclip is deprecated]**.
 
 For new projects, we recommend Rails' own [ActiveStorage].
@@ -29,21 +30,23 @@ migration guide. All other pull requests will be closed without merging.
 [Kreeti]: https://www.kreeti.com/
 [kt-paperclip]: https://rubygems.org/gems/kt-paperclip
 [fork of Paperclip]: https://github.com/kreeti/kt-paperclip
+=======
+Please feel free to contribute Issues and pull requests.
+>>>>>>> @{-1}
 
 # Existing documentation
 
 ## Documentation valid for `master` branch
 
 Please check the documentation for the paperclip version you are using:
-https://github.com/thoughtbot/paperclip/releases
+https://github.com/kreeti/kt-paperclip/releases
 
 ---
 
-[![Build Status](https://secure.travis-ci.org/thoughtbot/paperclip.svg?branch=master)](http://travis-ci.org/thoughtbot/paperclip)
-[![Dependency Status](https://gemnasium.com/thoughtbot/paperclip.svg?travis)](https://gemnasium.com/thoughtbot/paperclip)
-[![Code Climate](https://codeclimate.com/github/thoughtbot/paperclip.svg)](https://codeclimate.com/github/thoughtbot/paperclip)
-[![Inline docs](http://inch-ci.org/github/thoughtbot/paperclip.svg)](http://inch-ci.org/github/thoughtbot/paperclip)
-[![Security](https://hakiri.io/github/thoughtbot/paperclip/master.svg)](https://hakiri.io/github/thoughtbot/paperclip/master)
+[![Build Status](https://travis-ci.com/kreeti/kt-paperclip.svg?branch=master)](https://travis-ci.com/kreeti/kt-paperclip)
+[![Code Climate](https://codeclimate.com/github/kreeti/paperclip.svg)](https://codeclimate.com/github/kreeti/paperclip)
+[![Inline docs](http://inch-ci.org/github/kreeti/paperclip.svg)](http://inch-ci.org/github/kreeti/paperclip)
+[![Security](https://hakiri.io/github/kreeti/paperclip/master.svg)](https://hakiri.io/github/kreeti/paperclip/master)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -89,7 +92,6 @@ https://github.com/thoughtbot/paperclip/releases
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
-- [About thoughtbot](#about-thoughtbot)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -105,10 +107,10 @@ packages). Attached files are saved to the filesystem and referenced in the
 browser by an easily understandable specification, which has sensible and
 useful defaults.
 
-See the documentation for `has_attached_file` in [`Paperclip::ClassMethods`](http://www.rubydoc.info/gems/paperclip/Paperclip/ClassMethods) for
+See the documentation for `has_attached_file` in [`Paperclip::ClassMethods`](http://www.rubydoc.info/gems/kt-paperclip/Paperclip/ClassMethods) for
 more detailed options.
 
-The complete [RDoc](http://www.rubydoc.info/gems/paperclip) is online.
+The complete [RDoc](http://www.rubydoc.info/gems/kt-paperclip) is online.
 
 ---
 
@@ -117,7 +119,7 @@ Requirements
 
 ### Ruby and Rails
 
-Paperclip now requires Ruby version **>= 2.1** and Rails version **>= 4.2**
+Paperclip now requires Ruby version **>= 2.2** and Rails version **>= 4.2**
 (only if you're going to use Paperclip with Ruby on Rails).
 
 ### Image Processor
@@ -198,13 +200,13 @@ Paperclip is distributed as a gem, which is how it should be used in your app.
 Include the gem in your Gemfile:
 
 ```ruby
-gem "paperclip", "~> 6.0.0"
+gem "kt-paperclip", "~> 6.4", ">= 6.4.1"
 ```
 
 Or, if you want to get the latest, you can get master from the main paperclip repository:
 
 ```ruby
-gem "paperclip", git: "git://github.com/thoughtbot/paperclip.git"
+gem "kt-paperclip", git: "git://github.com/kreeti/kt-paperclip.git"
 ```
 
 If you're trying to use features that don't seem to be in the latest released gem, but are
@@ -336,7 +338,7 @@ You'll need to add `<attachment>_content_type` in case you want to use content t
 validation.
 
 More information about the options passed to `has_attached_file` is available in the
-documentation of [`Paperclip::ClassMethods`](http://www.rubydoc.info/gems/paperclip/Paperclip/ClassMethods).
+documentation of [`Paperclip::ClassMethods`](http://www.rubydoc.info/gems/kt-paperclip/Paperclip/ClassMethods).
 
 Validations
 -----------
@@ -368,7 +370,7 @@ Example Usage:
 validates_attachment_presence :avatar
 ```
 
-Lastly, you can also define multiple validations on a single attachment using `validates_attachment`:
+You can also define multiple validations on a single attachment using `validates_attachment`:
 
 ```ruby
 validates_attachment :avatar, presence: true,
@@ -437,13 +439,35 @@ validates_attachment :avatar,
 `Paperclip::ContentTypeDetector` will attempt to match a file's extension to an
 inferred content_type, regardless of the actual contents of the file.
 
+### Duplicate error messages
+
+By default Paperclip will copy validation errors from the attribute to the base
+of your model. Depending on how you display your validation errors, this can lead
+to confusing duplicate errors (one on the attribute and another referring to the
+base model).
+
+You can override this behaviour with the `add_validation_errors_to` option. By
+default this is set to `:both` but can be set to either `:attribute` or `:base`.
+
+* `:both` creates errors on both the attribute and base model.
+* `:attribute` only creates an error on the attribute of the model.
+* `:base` only creates an error on the base model.
+
+You can set this option globally:
+
+`Paperclip.options[:add_validation_errors_to] = :attribute`
+
+or pass it in to an individual validation declaration:
+
+`validates_attachment :document, content_type: { content_type: "application/pdf" }, add_validation_errors_to: :attribute`
+
 ---
 
 Internationalization (I18n)
 ---------------------------
 
 For using or adding locale files in different languages, check the project
-https://github.com/thoughtbot/paperclip-i18n.
+https://github.com/kreeti/paperclip-i18n.
 
 Security Validations
 ====================
@@ -632,7 +656,7 @@ gem 'aws-sdk-s3'
 
 And then you can specify using S3 from `has_attached_file`.
 You can find more information about configuring and using S3 storage in
-[the `Paperclip::Storage::S3` documentation](http://www.rubydoc.info/gems/paperclip/Paperclip/Storage/S3).
+[the `Paperclip::Storage::S3` documentation](http://www.rubydoc.info/gems/kt-paperclip/Paperclip/Storage/S3).
 
 Files on the local filesystem (and in the Rails app's public directory) will be
 available to the internet at large. If you require access control, it's
@@ -694,7 +718,7 @@ has more information on the accepted style formats.
 For more fine-grained control of the conversion process, `source_file_options` and `convert_options` can be used to pass flags and settings directly to ImageMagick's powerful Convert tool, [documented here](https://www.imagemagick.org/script/convert.php). For example:
 
 ```ruby
-has_attached_file :image, styles: { regular: ['800x800>', :png]}, 
+has_attached_file :image, styles: { regular: ['800x800>', :png]},
     source_file_options: { regular: "-density 96 -depth 8 -quality 85" },
     convert_options: { regular: "-posterize 3"}
 ```
@@ -715,7 +739,7 @@ Custom Attachment Processors
 You can write your own custom attachment processors to carry out tasks like
 adding watermarks, compressing images, or encrypting files. Custom processors
 must be defined within the `Paperclip` module, inherit from
-`Paperclip::Processor` (see [`lib/paperclip/processor.rb`](https://github.com/thoughtbot/paperclip/blob/master/lib/paperclip/processor.rb)),
+`Paperclip::Processor` (see [`lib/paperclip/processor.rb`](https://github.com/kreeti/kt-paperclip/blob/master/lib/paperclip/processor.rb)),
 and implement a `make` method that returns a `File`. All files in your Rails
 app's `lib/paperclip` and `lib/paperclip_processors` directories will be
 automatically loaded by Paperclip. Processors are specified using the
@@ -918,7 +942,7 @@ Your::Application.configure do
 end
 ```
 
-More information in the [rdocs](http://www.rubydoc.info/github/thoughtbot/paperclip/Paperclip.options)
+More information in the [rdocs](https://www.rubydoc.info/gems/kt-paperclip/Paperclip.options)
 
 ---
 
@@ -1002,7 +1026,7 @@ Testing
 -------
 
 Paperclip provides rspec-compatible matchers for testing attachments. See the
-documentation on [Paperclip::Shoulda::Matchers](http://www.rubydoc.info/gems/paperclip/Paperclip/Shoulda/Matchers)
+documentation on [Paperclip::Shoulda::Matchers](http://www.rubydoc.info/gems/kt-paperclip/Paperclip/Shoulda/Matchers)
 for more information.
 
 **Parallel Tests**
@@ -1062,33 +1086,18 @@ If you'd like to contribute a feature or bugfix: Thanks! To make sure your
 fix/feature has a high chance of being included, please read the following
 guidelines:
 
-1. Post a [pull request](https://github.com/thoughtbot/paperclip/compare/).
+1. Post a [pull request](https://github.com/kreeti/kt-paperclip/compare/).
 2. Make sure there are tests! We will not accept any patch that is not tested.
    It's a rare time when explicit tests aren't needed. If you have questions
    about writing tests for paperclip, please open a
-   [GitHub issue](https://github.com/thoughtbot/paperclip/issues/new).
+   [GitHub issue](https://github.com/kreeti/kt-paperclip/issues/new).
 
 Please see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for more details on contributing and running test.
 
-Thank you to all [the contributors](https://github.com/thoughtbot/paperclip/graphs/contributors)!
+Thank you to all [the contributors](https://github.com/kreeti/kt-paperclip/graphs/contributors)!
 
 License
 -------
 
-Paperclip is Copyright © 2008-2017 thoughtbot, inc. It is free software, and may be
+Paperclip is Copyright &copy; 2008-2017 thoughtbot, inc. It is free software, and may be
 redistributed under the terms specified in the MIT-LICENSE file.
-
-About thoughtbot
-----------------
-
-![thoughtbot](http://presskit.thoughtbot.com/images/thoughtbot-logo-for-readmes.svg)
-
-Paperclip is maintained and funded by thoughtbot.
-The names and logos for thoughtbot are trademarks of thoughtbot, inc.
-
-We love open source software!
-See [our other projects][community] or
-[hire us][hire] to design, develop, and grow your product.
-
-[community]: https://thoughtbot.com/community?utm_source=github
-[hire]: https://thoughtbot.com?utm_source=github

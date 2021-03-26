@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe Paperclip::AbstractAdapter do
   class TestAdapter < Paperclip::AbstractAdapter
@@ -13,9 +13,9 @@ describe Paperclip::AbstractAdapter do
 
   context "content type from file contents" do
     before do
-      subject.stubs(:path).returns("image.png")
-      Paperclip.stubs(:run).returns("image/png\n")
-      Paperclip::ContentTypeDetector.any_instance.stubs(:type_from_mime_magic).returns("image/png")
+      allow(subject).to receive(:path).and_return("image.png")
+      allow(Paperclip).to receive(:run).and_return("image/png\n")
+      allow_any_instance_of(Paperclip::ContentTypeDetector).to receive(:type_from_mime_magic).and_return("image/png")
     end
 
     it "returns the content type without newline" do
@@ -31,29 +31,29 @@ describe Paperclip::AbstractAdapter do
 
   context "delegation" do
     before do
-      subject.tempfile = stub("Tempfile")
+      subject.tempfile = double("Tempfile")
     end
 
     [:binmode, :binmode?, :close, :close!, :closed?, :eof?, :path, :readbyte, :rewind, :unlink].each do |method|
       it "delegates #{method} to @tempfile" do
-        subject.tempfile.stubs(method)
+        allow(subject.tempfile).to receive(method)
         subject.public_send(method)
-        assert_received subject.tempfile, method
+        expect(subject.tempfile).to have_received(method)
       end
     end
   end
 
-  it 'gets rid of slashes and colons in filenames' do
+  it "gets rid of slashes and colons in filenames" do
     subject.original_filename = "awesome/file:name.png"
 
     assert_equal "awesome_file_name.png", subject.original_filename
   end
 
-  it 'is an assignment' do
+  it "is an assignment" do
     assert subject.assignment?
   end
 
-  it 'is not nil' do
+  it "is not nil" do
     assert !subject.nil?
   end
 
@@ -61,7 +61,7 @@ describe Paperclip::AbstractAdapter do
     expect(subject.send(:destination).path).to_not be_nil
   end
 
-  it 'uses the original filename to generate the tempfile' do
+  it "uses the original filename to generate the tempfile" do
     subject.original_filename = "file.png"
     expect(subject.send(:destination).path).to end_with(".png")
   end
@@ -70,7 +70,7 @@ describe Paperclip::AbstractAdapter do
     subject { TestAdapter.new(nil, options) }
 
     before do
-      subject.stubs(:path).returns(fixture_file("50x50.png"))
+      allow(subject).to receive(:path).and_return(fixture_file("50x50.png"))
     end
 
     context "MD5" do
@@ -152,7 +152,7 @@ describe Paperclip::AbstractAdapter do
     end
 
     it "should be able to reopen the file after symlink has failed" do
-      FileUtils.expects(:ln).raises(Errno::EXDEV)
+      expect(FileUtils).to receive(:ln).and_raise(Errno::EXDEV)
 
       expect(subject.copy_to_tempfile(file).read).to eq(body)
     end

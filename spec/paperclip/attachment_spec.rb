@@ -1,7 +1,6 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe Paperclip::Attachment do
-
   it "is not present when file not set" do
     rebuild_class
     dummy = Dummy.new
@@ -18,8 +17,8 @@ describe Paperclip::Attachment do
   end
 
   it "processes :original style first" do
-    file = File.new(fixture_file("50x50.png"), 'rb')
-    rebuild_class styles: { small: '100x>', original: '42x42#' }
+    file = File.new(fixture_file("50x50.png"), "rb")
+    rebuild_class styles: { small: "100x>", original: "42x42#" }
     dummy = Dummy.new
     dummy.avatar = file
     dummy.save
@@ -31,7 +30,7 @@ describe Paperclip::Attachment do
   end
 
   it "does not delete styles that don't get reprocessed" do
-    file = File.new(fixture_file("50x50.png"), 'rb')
+    file = File.new(fixture_file("50x50.png"), "rb")
     rebuild_class styles: {
       small: "100x>",
       large: "500x>",
@@ -94,7 +93,7 @@ describe Paperclip::Attachment do
       :name,
       FakeModel.new,
       url_generator: mock_url_generator_builder
-      )
+    )
 
     attachment.url(:style_name, true)
     expect(mock_url_generator_builder.has_generated_url_with_options?(timestamp: true, escape: true)).to eq true
@@ -109,7 +108,7 @@ describe Paperclip::Attachment do
       :name,
       FakeModel.new,
       url_generator: mock_url_generator_builder
-      )
+    )
 
     attachment.url(:style_name, options: :values)
     expect(mock_url_generator_builder.has_generated_url_with_options?(options: :values)).to eq true
@@ -130,13 +129,13 @@ describe Paperclip::Attachment do
     mock_url_generator_builder = MockUrlGeneratorBuilder.new
     attachment = Paperclip::Attachment.new(:name,
                                            FakeModel.new,
-                                           default_style: 'default style',
+                                           default_style: "default style",
                                            url_generator: mock_url_generator_builder,
                                            use_timestamp: true)
 
     attachment.url
     assert mock_url_generator_builder.has_generated_url_with_options?(escape: true, timestamp: true)
-    assert mock_url_generator_builder.has_generated_url_with_style_name?('default style')
+    assert mock_url_generator_builder.has_generated_url_with_style_name?("default style")
   end
 
   it "passes the option timestamp: true if :use_timestamp is true and :timestamp is not passed" do
@@ -176,11 +175,11 @@ describe Paperclip::Attachment do
     mock_url_generator_builder = MockUrlGeneratorBuilder.new
     attachment = Paperclip::Attachment.new(:name,
                                            FakeModel.new,
-                                           default_style: 'default style',
+                                           default_style: "default style",
                                            url_generator: mock_url_generator_builder)
 
     attachment.as_json
-    assert mock_url_generator_builder.has_generated_url_with_style_name?('default style')
+    assert mock_url_generator_builder.has_generated_url_with_style_name?("default style")
   end
 
   it "passes the option escape: true if :escape_url is true and :escape is not passed" do
@@ -235,7 +234,7 @@ describe Paperclip::Attachment do
     dummy = Dummy.new
     dummy.id = 1234
     dummy.avatar_file_name = "fake.jpg"
-    dummy.stubs(:new_record?).returns(false)
+    allow(dummy).to receive(:new_record?).and_return(false)
     expected_string = '{"avatar":"/system/dummies/avatars/000/001/234/original/fake.jpg"}'
     # active_model pre-3.2 checks only by calling any? on it, thus it doesn't work if it is empty
     assert_equal expected_string, dummy.to_json(only: [:dummy_key_for_old_active_model], methods: [:avatar])
@@ -245,11 +244,11 @@ describe Paperclip::Attachment do
     before do
       rebuild_model
       @old_default_options = Paperclip::Attachment.default_options.dup
-      @new_default_options = @old_default_options.merge({
+      @new_default_options = @old_default_options.merge(
         path: "argle/bargle",
         url: "fooferon",
         default_url: "not here.png"
-      })
+      )
     end
 
     after do
@@ -315,8 +314,9 @@ describe Paperclip::Attachment do
     before do
       rebuild_model path: ":id.omg/:id-bbq/:idwhat/:id_partition.wtf"
       @dummy = Dummy.new
-      @dummy.stubs(:id).returns(1024)
-      @file = File.new(fixture_file("5k.png"), 'rb')
+
+      allow(@dummy).to receive(:id).and_return(1024)
+      @file = File.new(fixture_file("5k.png"), "rb")
       @dummy.avatar = @file
     end
 
@@ -330,10 +330,10 @@ describe Paperclip::Attachment do
   context "An attachment with :timestamp interpolations" do
     before do
       @file = StringIO.new("...")
-      @zone = 'UTC'
-      Time.stubs(:zone).returns(@zone)
-      @zone_default = 'Eastern Time (US & Canada)'
-      Time.stubs(:zone_default).returns(@zone_default)
+      @zone = "UTC"
+      allow(Time).to receive(:zone).and_return(@zone)
+      @zone_default = "Eastern Time (US & Canada)"
+      allow(Time).to receive(:zone_default).and_return(@zone_default)
     end
 
     context "using default time zone" do
@@ -383,17 +383,17 @@ describe Paperclip::Attachment do
     context "when secret is set" do
       before do
         rebuild_model path: ":hash",
-          hash_secret: "w00t",
-          hash_data: ":class/:attachment/:style/:filename"
+                      hash_secret: "w00t",
+                      hash_data: ":class/:attachment/:style/:filename"
         @attachment = Dummy.new.avatar
         @attachment.assign @file
       end
 
       it "results in the correct interpolation" do
         assert_equal "dummies/avatars/original/5k.png",
-          @attachment.send(:interpolate, @attachment.options[:hash_data])
+                     @attachment.send(:interpolate, @attachment.options[:hash_data])
         assert_equal "dummies/avatars/thumb/5k.png",
-          @attachment.send(:interpolate, @attachment.options[:hash_data], :thumb)
+                     @attachment.send(:interpolate, @attachment.options[:hash_data], :thumb)
       end
 
       it "results in a correct hash" do
@@ -409,10 +409,10 @@ describe Paperclip::Attachment do
       @id = 1024
       rebuild_model path: ":rails_env/:id.png"
       @dummy = Dummy.new
-      @dummy.stubs(:id).returns(@id)
+      allow(@dummy).to receive(:id).and_return(@id)
       @file = StringIO.new(".")
       @dummy.avatar = @file
-      Rails.stubs(:env).returns(@rails_env)
+      allow(Rails).to receive(:env).and_return(@rails_env)
     end
 
     it "returns the proper path" do
@@ -423,11 +423,11 @@ describe Paperclip::Attachment do
   context "An attachment with a default style and an extension interpolation" do
     before do
       rebuild_model path: ":basename.:extension",
-        styles: { default: ["100x100", :jpg] },
-        default_style: :default
+                    styles: { default: ["100x100", :jpg] },
+                    default_style: :default
       @attachment = Dummy.new.avatar
       @file = File.open(fixture_file("5k.png"))
-      @file.stubs(:original_filename).returns("file.png")
+      allow(@file).to receive(:original_filename).and_return("file.png")
     end
     it "returns the right extension for the path" do
       @attachment.assign(@file)
@@ -438,9 +438,9 @@ describe Paperclip::Attachment do
   context "An attachment with :convert_options" do
     before do
       rebuild_model styles: {
-                      thumb: "100x100",
-                      large: "400x400"
-                    },
+        thumb: "100x100",
+        large: "400x400"
+      },
                     convert_options: {
                       all: "-do_stuff",
                       thumb: "-thumbnailize"
@@ -461,9 +461,9 @@ describe Paperclip::Attachment do
   context "An attachment with :source_file_options" do
     before do
       rebuild_model styles: {
-                      thumb: "100x100",
-                      large: "400x400"
-                    },
+        thumb: "100x100",
+        large: "400x400"
+      },
                     source_file_options: {
                       all: "-density 400",
                       thumb: "-depth 8"
@@ -484,17 +484,17 @@ describe Paperclip::Attachment do
   context "An attachment with :only_process" do
     before do
       rebuild_model styles: {
-                      thumb: "100x100",
-                      large: "400x400"
-                    },
+        thumb: "100x100",
+        large: "400x400"
+      },
                     only_process: [:thumb]
       @file = StringIO.new("...")
       @attachment = Dummy.new.avatar
     end
 
     it "only processes the provided style" do
-      @attachment.expects(:post_process).with(:thumb)
-      @attachment.expects(:post_process).with(:large).never
+      expect(@attachment).to receive(:post_process).with(:thumb)
+      expect(@attachment).to receive(:post_process).with(:large).never
       @attachment.assign(@file)
     end
   end
@@ -502,18 +502,18 @@ describe Paperclip::Attachment do
   context "An attachment with :only_process that is a proc" do
     before do
       rebuild_model styles: {
-                      thumb: "100x100",
-                      large: "400x400"
-                    },
-                    only_process: lambda { |attachment| [:thumb] }
+        thumb: "100x100",
+        large: "400x400"
+      },
+                    only_process: lambda { |_attachment| [:thumb] }
 
       @file = StringIO.new("...")
       @attachment = Dummy.new.avatar
     end
 
     it "only processes the provided style" do
-      @attachment.expects(:post_process).with(:thumb)
-      @attachment.expects(:post_process).with(:large).never
+      expect(@attachment).to receive(:post_process).with(:thumb)
+      expect(@attachment).to receive(:post_process).with(:large).never
       @attachment.assign(@file)
       @attachment.save
     end
@@ -522,15 +522,16 @@ describe Paperclip::Attachment do
   context "An attachment with :convert_options that is a proc" do
     before do
       rebuild_model styles: {
-                      thumb: "100x100",
-                      large: "400x400"
-                    },
+        thumb: "100x100",
+        large: "400x400"
+      },
                     convert_options: {
-                      all: lambda{|i| i.all },
-                      thumb: lambda{|i| i.thumb }
+                      all: lambda { |i| i.all },
+                      thumb: lambda { |i| i.thumb }
                     }
       Dummy.class_eval do
         def all;   "-all";   end
+
         def thumb; "-thumb"; end
       end
       @dummy = Dummy.new
@@ -548,12 +549,12 @@ describe Paperclip::Attachment do
 
   context "An attachment with :path that is a proc" do
     before do
-      rebuild_model path: lambda{ |attachment| "path/#{attachment.instance.other}.:extension" }
+      rebuild_model path: lambda { |attachment| "path/#{attachment.instance.other}.:extension" }
 
-      @file = File.new(fixture_file("5k.png"), 'rb')
-      @dummyA = Dummy.new(other: 'a')
+      @file = File.new(fixture_file("5k.png"), "rb")
+      @dummyA = Dummy.new(other: "a")
       @dummyA.avatar = @file
-      @dummyB = Dummy.new(other: 'b')
+      @dummyB = Dummy.new(other: "b")
       @dummyB.avatar = @file
     end
 
@@ -567,7 +568,7 @@ describe Paperclip::Attachment do
 
   context "An attachment with :styles that is a proc" do
     before do
-      rebuild_model styles: lambda{ |attachment| {thumb: "50x50#", large: "400x400"} }
+      rebuild_model styles: lambda { |_attachment| { thumb: "50x50#", large: "400x400" } }
 
       @attachment = Dummy.new.avatar
     end
@@ -579,16 +580,16 @@ describe Paperclip::Attachment do
 
   context "An attachment with conditional :styles that is a proc" do
     before do
-      rebuild_model styles: lambda{ |attachment| attachment.instance.other == 'a' ? {thumb: "50x50#"} : {large: "400x400"} }
+      rebuild_model styles: lambda { |attachment| attachment.instance.other == "a" ? { thumb: "50x50#" } : { large: "400x400" } }
 
-      @dummy = Dummy.new(other: 'a')
+      @dummy = Dummy.new(other: "a")
     end
 
     it "has the correct styles for the assigned instance values" do
       assert_equal "50x50#", @dummy.avatar.styles[:thumb][:geometry]
       assert_nil @dummy.avatar.styles[:large]
 
-      @dummy.other = 'b'
+      @dummy.other = "b"
 
       assert_equal "400x400", @dummy.avatar.styles[:large][:geometry]
       assert_nil @dummy.avatar.styles[:thumb]
@@ -596,9 +597,9 @@ describe Paperclip::Attachment do
   end
 
   geometry_specs = [
-    [ lambda{|z| "50x50#" }, :png ],
-    lambda{|z| "50x50#" },
-    { geometry: lambda{|z| "50x50#" } }
+    [lambda { |_z| "50x50#" }, :png],
+    lambda { |_z| "50x50#" },
+    { geometry: lambda { |_z| "50x50#" } }
   ]
   geometry_specs.each do |geometry_spec|
     context "An attachment geometry like #{geometry_spec}" do
@@ -623,9 +624,9 @@ describe Paperclip::Attachment do
   context "An attachment with both 'normal' and hash-style styles" do
     before do
       rebuild_model styles: {
-                      normal: ["50x50#", :png],
-                      hash: { geometry: "50x50#", format: :png }
-                    }
+        normal: ["50x50#", :png],
+        hash: { geometry: "50x50#", format: :png }
+      }
       @dummy = Dummy.new
       @attachment = @dummy.avatar
     end
@@ -641,9 +642,9 @@ describe Paperclip::Attachment do
     before do
       class Paperclip::Test < Paperclip::Processor; end
       @file = StringIO.new("...")
-      Paperclip::Test.stubs(:make).returns(@file)
+      allow(Paperclip::Test).to receive(:make).and_return(@file)
 
-      rebuild_model styles: { normal: '' }, processors: lambda { |a| [ :test ] }
+      rebuild_model styles: { normal: "" }, processors: lambda { |_a| [:test] }
       @attachment = Dummy.new.avatar
     end
 
@@ -653,22 +654,22 @@ describe Paperclip::Attachment do
       end
 
       it "has the correct processors" do
-        assert_equal [ :test ], @attachment.styles[:normal][:processors]
+        assert_equal [:test], @attachment.styles[:normal][:processors]
       end
     end
   end
 
   context "An attachment with erroring processor" do
     before do
-      rebuild_model processor: [:thumbnail], styles: { small: '' }, whiny_thumbnails: true
+      rebuild_model processor: [:thumbnail], styles: { small: "" }, whiny_thumbnails: true
       @dummy = Dummy.new
       @file = StringIO.new("...")
-      @file.stubs(:to_tempfile).returns(@file)
+      allow(@file).to receive(:to_tempfile).and_return(@file)
     end
 
     context "when error is meaningful for the end user" do
       before do
-        Paperclip::Thumbnail.expects(:make).raises(
+        expect(Paperclip::Thumbnail).to receive(:make).and_raise(
           Paperclip::Errors::NotIdentifiedByImageMagickError,
           "cannot be processed."
         )
@@ -686,7 +687,7 @@ describe Paperclip::Attachment do
 
     context "when error is intended for the developer" do
       before do
-        Paperclip::Thumbnail.expects(:make).raises(
+        expect(Paperclip::Thumbnail).to receive(:make).and_raise(
           Paperclip::Errors::CommandNotFoundError
         )
       end
@@ -702,13 +703,13 @@ describe Paperclip::Attachment do
   context "An attachment with multiple processors" do
     before do
       class Paperclip::Test < Paperclip::Processor; end
-      @style_params = { once: {one: 1, two: 2} }
+      @style_params = { once: { one: 1, two: 2 } }
       rebuild_model processors: [:thumbnail, :test], styles: @style_params
       @dummy = Dummy.new
       @file = StringIO.new("...")
-      @file.stubs(:close)
-      Paperclip::Test.stubs(:make).returns(@file)
-      Paperclip::Thumbnail.stubs(:make).returns(@file)
+      allow(@file).to receive(:close)
+      allow(Paperclip::Test).to receive(:make).and_return(@file)
+      allow(Paperclip::Thumbnail).to receive(:make).and_return(@file)
     end
 
     context "when assigned" do
@@ -720,13 +721,13 @@ describe Paperclip::Attachment do
       end
 
       it "calls #make with the right parameters passed as second argument" do
-        expected_params = @style_params[:once].merge({
+        expected_params = @style_params[:once].merge(
           style: :once,
           processors: [:thumbnail, :test],
           whiny: true,
           convert_options: "",
           source_file_options: ""
-        })
+        )
 
         @dummy.avatar = @file
 
@@ -740,7 +741,7 @@ describe Paperclip::Attachment do
       end
 
       it "calls #make and unlinks intermediary files afterward" do
-        @dummy.avatar.expects(:unlink_files).with([@file, @file])
+        expect(@dummy.avatar).to receive(:unlink_files).with([@file, @file])
 
         @dummy.avatar = @file
       end
@@ -754,13 +755,13 @@ describe Paperclip::Attachment do
       end
       rebuild_model processors: [:test], styles: { once: "100x100" }
       @file = StringIO.new("...")
-      @file.stubs(:close)
+      allow(@file).to receive(:close)
       @dummy = Dummy.new
     end
 
     context "when assigned" do
       it "#calls #make and doesn't unlink the original file" do
-        @dummy.avatar.expects(:unlink_files).with([])
+        expect(@dummy.avatar).to receive(:unlink_files).with([])
 
         @dummy.avatar = @file
       end
@@ -801,12 +802,12 @@ describe Paperclip::Attachment do
 
   context "An attachment with styles but no processors defined" do
     before do
-      rebuild_model processors: [], styles: {something: '1'}
+      rebuild_model processors: [], styles: { something: "1" }
       @dummy = Dummy.new
       @file = StringIO.new("...")
     end
     it "raises when assigned to" do
-      assert_raises(RuntimeError){ @dummy.avatar = @file }
+      assert_raises(RuntimeError) { @dummy.avatar = @file }
     end
   end
 
@@ -830,50 +831,78 @@ describe Paperclip::Attachment do
         before_post_process :do_before_all
         after_post_process :do_after_all
         def do_before_avatar; end
+
         def do_after_avatar; end
+
         def do_before_all; end
+
         def do_after_all; end
       end
-      @file  = StringIO.new(".")
-      @file.stubs(:to_tempfile).returns(@file)
+      @file = StringIO.new(".")
+      allow(@file).to receive(:to_tempfile).and_return(@file)
       @dummy = Dummy.new
-      Paperclip::Thumbnail.stubs(:make).returns(@file)
+      allow(Paperclip::Thumbnail).to receive(:make).and_return(@file)
       @attachment = @dummy.avatar
     end
 
     it "calls the defined callbacks when assigned" do
-      @dummy.expects(:do_before_avatar).with()
-      @dummy.expects(:do_after_avatar).with()
-      @dummy.expects(:do_before_all).with()
-      @dummy.expects(:do_after_all).with()
-      Paperclip::Thumbnail.expects(:make).returns(@file)
+      expect(@dummy).to receive(:do_before_avatar)
+      expect(@dummy).to receive(:do_after_avatar)
+      expect(@dummy).to receive(:do_before_all)
+      expect(@dummy).to receive(:do_after_all)
+      expect(Paperclip::Thumbnail).to receive(:make).and_return(@file)
       @dummy.avatar = @file
     end
 
     it "does not cancel the processing if a before_post_process returns nil" do
-      @dummy.expects(:do_before_avatar).with().returns(nil)
-      @dummy.expects(:do_after_avatar).with()
-      @dummy.expects(:do_before_all).with().returns(nil)
-      @dummy.expects(:do_after_all).with()
-      Paperclip::Thumbnail.expects(:make).returns(@file)
+      expect(@dummy).to receive(:do_before_avatar).and_return(nil)
+      expect(@dummy).to receive(:do_after_avatar)
+      expect(@dummy).to receive(:do_before_all).and_return(nil)
+      expect(@dummy).to receive(:do_after_all)
+      expect(Paperclip::Thumbnail).to receive(:make).and_return(@file)
       @dummy.avatar = @file
     end
 
     it "cancels the processing if a before_post_process returns false" do
-      @dummy.expects(:do_before_avatar).never
-      @dummy.expects(:do_after_avatar).never
-      @dummy.expects(:do_before_all).with().returns(false)
-      @dummy.expects(:do_after_all)
-      Paperclip::Thumbnail.expects(:make).never
+      expect(@dummy).to receive(:do_before_avatar).never
+      expect(@dummy).to receive(:do_after_avatar).never
+      expect(@dummy).to receive(:do_before_all).and_return(false)
+      expect(@dummy).to receive(:do_after_all)
+      expect(Paperclip::Thumbnail).not_to receive(:make)
       @dummy.avatar = @file
     end
 
     it "cancels the processing if a before_avatar_post_process returns false" do
-      @dummy.expects(:do_before_avatar).with().returns(false)
-      @dummy.expects(:do_after_avatar)
-      @dummy.expects(:do_before_all).with().returns(true)
-      @dummy.expects(:do_after_all)
-      Paperclip::Thumbnail.expects(:make).never
+      expect(@dummy).to receive(:do_before_avatar).and_return(false)
+      expect(@dummy).to receive(:do_after_avatar)
+      expect(@dummy).to receive(:do_before_all).and_return(true)
+      expect(@dummy).to receive(:do_after_all)
+      expect(Paperclip::Thumbnail).not_to receive(:make)
+      @dummy.avatar = @file
+    end
+
+    it "should not call process hooks if validation fails" do
+      Dummy.class_eval do
+        validates_attachment_content_type :avatar, content_type: 'image/jpeg'
+      end
+      expect(@dummy).not_to receive(:do_before_avatar)
+      expect(@dummy).not_to receive(:do_after_avatar)
+      expect(@dummy).not_to receive(:do_before_all)
+      expect(@dummy).not_to receive(:do_after_all)
+      expect(Paperclip::Thumbnail).not_to receive(:make)
+      @dummy.avatar = @file
+    end
+
+    it "should call process hooks if validation would fail but check validity flag is false" do
+      Dummy.class_eval do
+        validates_attachment_content_type :avatar, content_type: 'image/jpeg'
+      end
+      @dummy.avatar.options[:check_validity_before_processing] = false
+      expect(@dummy).to receive(:do_before_avatar)
+      expect(@dummy).to receive(:do_after_avatar)
+      expect(@dummy).to receive(:do_before_all)
+      expect(@dummy).to receive(:do_after_all)
+      expect(Paperclip::Thumbnail).to receive(:make).and_return(@file)
       @dummy.avatar = @file
     end
   end
@@ -912,7 +941,7 @@ describe Paperclip::Attachment do
     before do
       rebuild_model
       @file = File.new(fixture_file("5k.png"), "rb")
-      @file.stubs(:original_filename).returns("sheep_say_bæ.png")
+      allow(@file).to receive(:original_filename).and_return("sheep_say_bæ.png")
       @dummy = Dummy.new
       @dummy.avatar = @file
     end
@@ -925,7 +954,7 @@ describe Paperclip::Attachment do
   context "Attachment with reserved filename" do
     before do
       rebuild_model
-      @file = Tempfile.new(["filename","png"])
+      @file = Tempfile.new(["filename", "png"])
     end
 
     after do
@@ -935,10 +964,9 @@ describe Paperclip::Attachment do
     context "with default configuration" do
       "&$+,/:;=?@<>[]{}|\^~%# ".split(//).each do |character|
         context "with character #{character}" do
-
           context "at beginning of filename" do
             before do
-              @file.stubs(:original_filename).returns("#{character}filename.png")
+              allow(@file).to receive(:original_filename).and_return("#{character}filename.png")
               @dummy = Dummy.new
               @dummy.avatar = @file
             end
@@ -950,7 +978,7 @@ describe Paperclip::Attachment do
 
           context "at end of filename" do
             before do
-              @file.stubs(:original_filename).returns("filename.png#{character}")
+              allow(@file).to receive(:original_filename).and_return("filename.png#{character}")
               @dummy = Dummy.new
               @dummy.avatar = @file
             end
@@ -962,7 +990,7 @@ describe Paperclip::Attachment do
 
           context "in the middle of filename" do
             before do
-              @file.stubs(:original_filename).returns("file#{character}name.png")
+              allow(@file).to receive(:original_filename).and_return("file#{character}name.png")
               @dummy = Dummy.new
               @dummy.avatar = @file
             end
@@ -971,7 +999,6 @@ describe Paperclip::Attachment do
               assert_equal "file_name.png", @dummy.avatar.original_filename
             end
           end
-
         end
       end
     end
@@ -985,11 +1012,11 @@ describe Paperclip::Attachment do
         Paperclip::Attachment.default_options.merge! @old_defaults
       end
 
-      context 'as another regexp' do
+      context "as another regexp" do
         before do
           Paperclip::Attachment.default_options.merge! restricted_characters: /o/
 
-          @file.stubs(:original_filename).returns("goood.png")
+          allow(@file).to receive(:original_filename).and_return("goood.png")
           @dummy = Dummy.new
           @dummy.avatar = @file
         end
@@ -999,11 +1026,11 @@ describe Paperclip::Attachment do
         end
       end
 
-      context 'as nil' do
+      context "as nil" do
         before do
           Paperclip::Attachment.default_options.merge! restricted_characters: nil
 
-          @file.stubs(:original_filename).returns("goood.png")
+          allow(@file).to receive(:original_filename).and_return("goood.png")
           @dummy = Dummy.new
           @dummy.avatar = @file
         end
@@ -1014,7 +1041,7 @@ describe Paperclip::Attachment do
       end
     end
 
-    context 'with specified cleaner' do
+    context "with specified cleaner" do
       before do
         @old_defaults = Paperclip::Attachment.default_options.dup
       end
@@ -1023,26 +1050,26 @@ describe Paperclip::Attachment do
         Paperclip::Attachment.default_options.merge! @old_defaults
       end
 
-      it 'calls the given proc and take the result as cleaned filename' do
+      it "calls the given proc and take the result as cleaned filename" do
         Paperclip::Attachment.default_options[:filename_cleaner] = lambda do |str|
           "from_proc_#{str}"
         end
 
-        @file.stubs(:original_filename).returns("goood.png")
+        allow(@file).to receive(:original_filename).and_return("goood.png")
         @dummy = Dummy.new
         @dummy.avatar = @file
         assert_equal "from_proc_goood.png", @dummy.avatar.original_filename
       end
 
-      it 'calls the given object and take the result as the cleaned filename' do
+      it "calls the given object and take the result as the cleaned filename" do
         class MyCleaner
-          def call(filename)
+          def call(_filename)
             "foo"
           end
         end
         Paperclip::Attachment.default_options[:filename_cleaner] = MyCleaner.new
 
-        @file.stubs(:original_filename).returns("goood.png")
+        allow(@file).to receive(:original_filename).and_return("goood.png")
         @dummy = Dummy.new
         @dummy.avatar = @file
         assert_equal "foo", @dummy.avatar.original_filename
@@ -1053,22 +1080,22 @@ describe Paperclip::Attachment do
   context "Attachment with uppercase extension and a default style" do
     before do
       @old_defaults = Paperclip::Attachment.default_options.dup
-      Paperclip::Attachment.default_options.merge!({
+      Paperclip::Attachment.default_options.merge!(
         path: ":rails_root/:attachment/:class/:style/:id/:basename.:extension"
-      })
+      )
       FileUtils.rm_rf("tmp")
       rebuild_model styles: { large: ["400x400", :jpg],
-                             medium: ["100x100", :jpg],
-                             small: ["32x32#", :jpg]},
+                              medium: ["100x100", :jpg],
+                              small: ["32x32#", :jpg] },
                     default_style: :small
       @instance = Dummy.new
-      @instance.stubs(:id).returns 123
-      @file = File.new(fixture_file("uppercase.PNG"), 'rb')
+      allow(@instance).to receive(:id).and_return 123
+      @file = File.new(fixture_file("uppercase.PNG"), "rb")
 
       @attachment = @instance.avatar
 
       now = Time.now
-      Time.stubs(:now).returns(now)
+      allow(Time).to receive(:now).and_return(now)
       @attachment.assign(@file)
       @attachment.save
     end
@@ -1091,16 +1118,16 @@ describe Paperclip::Attachment do
   context "An attachment" do
     before do
       @old_defaults = Paperclip::Attachment.default_options.dup
-      Paperclip::Attachment.default_options.merge!({
+      Paperclip::Attachment.default_options.merge!(
         path: ":rails_root/:attachment/:class/:style/:id/:basename.:extension"
-      })
+      )
       FileUtils.rm_rf("tmp")
       rebuild_model
       @instance = Dummy.new
-      @instance.stubs(:id).returns 123
+      allow(@instance).to receive(:id).and_return 123
       # @attachment = Paperclip::Attachment.new(:avatar, @instance)
       @attachment = @instance.avatar
-      @file = File.new(fixture_file("5k.png"), 'rb')
+      @file = File.new(fixture_file("5k.png"), "rb")
     end
 
     after do
@@ -1115,14 +1142,14 @@ describe Paperclip::Attachment do
       end
     end
 
-    it 'clears out the previous assignment when assigned nil' do
+    it "clears out the previous assignment when assigned nil" do
       @attachment.assign(@file)
       @attachment.queued_for_write[:original]
       @attachment.assign(nil)
       assert_nil @attachment.queued_for_write[:original]
     end
 
-    it 'does not do anything when it is assigned an empty string' do
+    it "does not do anything when it is assigned an empty string" do
       @attachment.assign(@file)
       original_file = @attachment.queued_for_write[:original]
       @attachment.assign("")
@@ -1145,13 +1172,13 @@ describe Paperclip::Attachment do
 
     context "with a file assigned in the database" do
       before do
-        @attachment.stubs(:instance_read).with(:file_name).returns("5k.png")
-        @attachment.stubs(:instance_read).with(:content_type).returns("image/png")
-        @attachment.stubs(:instance_read).with(:file_size).returns(12345)
+        allow(@attachment).to receive(:instance_read).with(:file_name).and_return("5k.png")
+        allow(@attachment).to receive(:instance_read).with(:content_type).and_return("image/png")
+        allow(@attachment).to receive(:instance_read).with(:file_size).and_return(12345)
         dtnow = DateTime.now
         @now = Time.now
-        Time.stubs(:now).returns(@now)
-        @attachment.stubs(:instance_read).with(:updated_at).returns(dtnow)
+        allow(Time).to receive(:now).and_return(@now)
+        allow(@attachment).to receive(:instance_read).with(:updated_at).and_return(dtnow)
       end
 
       it "returns the proper path when filename has a single .'s" do
@@ -1159,7 +1186,7 @@ describe Paperclip::Attachment do
       end
 
       it "returns the proper path when filename has multiple .'s" do
-        @attachment.stubs(:instance_read).with(:file_name).returns("5k.old.png")
+        allow(@attachment).to receive(:instance_read).with(:file_name).and_return("5k.old.png")
         assert_equal File.expand_path("tmp/avatars/dummies/original/#{@instance.id}/5k.old.png"), File.expand_path(@attachment.path)
       end
 
@@ -1171,15 +1198,15 @@ describe Paperclip::Attachment do
             small: ["32x32#", :jpg]
           }
           @instance = Dummy.new
-          @instance.stubs(:id).returns 123
-          @file = File.new(fixture_file("5k.png"), 'rb')
+          allow(@instance).to receive(:id).and_return 123
+          @file = File.new(fixture_file("5k.png"), "rb")
           @attachment = @instance.avatar
         end
 
         context "and assigned a file" do
           before do
             now = Time.now
-            Time.stubs(:now).returns(now)
+            allow(Time).to receive(:now).and_return(now)
             @attachment.assign(@file)
           end
 
@@ -1202,7 +1229,7 @@ describe Paperclip::Attachment do
               [[:large, 400, 61, "PNG"],
                [:medium, 100, 15, "GIF"],
                [:small, 32, 32, "JPEG"]].each do |style|
-                cmd = %Q[identify -format "%w %h %b %m" "#{@attachment.path(style.first)}"]
+                cmd = %[identify -format "%w %h %b %m" "#{@attachment.path(style.first)}"]
                 out = `#{cmd}`
                 width, height, _size, format = out.split(" ")
                 assert_equal style[1].to_s, width.to_s
@@ -1213,41 +1240,41 @@ describe Paperclip::Attachment do
 
             context "and trying to delete" do
               before do
-                @existing_names = @attachment.styles.keys.collect do |style|
+                @existing_names = @attachment.styles.keys.map do |style|
                   @attachment.path(style)
                 end
               end
 
               it "deletes the files after assigning nil" do
-                @attachment.expects(:instance_write).with(:file_name, nil)
-                @attachment.expects(:instance_write).with(:content_type, nil)
-                @attachment.expects(:instance_write).with(:file_size, nil)
-                @attachment.expects(:instance_write).with(:fingerprint, nil)
-                @attachment.expects(:instance_write).with(:updated_at, nil)
+                expect(@attachment).to receive(:instance_write).with(:file_name, nil)
+                expect(@attachment).to receive(:instance_write).with(:content_type, nil)
+                expect(@attachment).to receive(:instance_write).with(:file_size, nil)
+                expect(@attachment).to receive(:instance_write).with(:fingerprint, nil)
+                expect(@attachment).to receive(:instance_write).with(:updated_at, nil)
                 @attachment.assign nil
                 @attachment.save
-                @existing_names.each{|f| assert_file_not_exists(f) }
+                @existing_names.each { |f| assert_file_not_exists(f) }
               end
 
               it "deletes the files when you call #clear and #save" do
-                @attachment.expects(:instance_write).with(:file_name, nil)
-                @attachment.expects(:instance_write).with(:content_type, nil)
-                @attachment.expects(:instance_write).with(:file_size, nil)
-                @attachment.expects(:instance_write).with(:fingerprint, nil)
-                @attachment.expects(:instance_write).with(:updated_at, nil)
+                expect(@attachment).to receive(:instance_write).with(:file_name, nil)
+                expect(@attachment).to receive(:instance_write).with(:content_type, nil)
+                expect(@attachment).to receive(:instance_write).with(:file_size, nil)
+                expect(@attachment).to receive(:instance_write).with(:fingerprint, nil)
+                expect(@attachment).to receive(:instance_write).with(:updated_at, nil)
                 @attachment.clear
                 @attachment.save
-                @existing_names.each{|f| assert_file_not_exists(f) }
+                @existing_names.each { |f| assert_file_not_exists(f) }
               end
 
               it "deletes the files when you call #delete" do
-                @attachment.expects(:instance_write).with(:file_name, nil)
-                @attachment.expects(:instance_write).with(:content_type, nil)
-                @attachment.expects(:instance_write).with(:file_size, nil)
-                @attachment.expects(:instance_write).with(:fingerprint, nil)
-                @attachment.expects(:instance_write).with(:updated_at, nil)
+                expect(@attachment).to receive(:instance_write).with(:file_name, nil)
+                expect(@attachment).to receive(:instance_write).with(:content_type, nil)
+                expect(@attachment).to receive(:instance_write).with(:file_size, nil)
+                expect(@attachment).to receive(:instance_write).with(:fingerprint, nil)
+                expect(@attachment).to receive(:instance_write).with(:updated_at, nil)
                 @attachment.destroy
-                @existing_names.each{|f| assert_file_not_exists(f) }
+                @existing_names.each { |f| assert_file_not_exists(f) }
               end
 
               context "when keeping old files" do
@@ -1256,35 +1283,35 @@ describe Paperclip::Attachment do
                 end
 
                 it "keeps the files after assigning nil" do
-                  @attachment.expects(:instance_write).with(:file_name, nil)
-                  @attachment.expects(:instance_write).with(:content_type, nil)
-                  @attachment.expects(:instance_write).with(:file_size, nil)
-                  @attachment.expects(:instance_write).with(:fingerprint, nil)
-                  @attachment.expects(:instance_write).with(:updated_at, nil)
+                  expect(@attachment).to receive(:instance_write).with(:file_name, nil)
+                  expect(@attachment).to receive(:instance_write).with(:content_type, nil)
+                  expect(@attachment).to receive(:instance_write).with(:file_size, nil)
+                  expect(@attachment).to receive(:instance_write).with(:fingerprint, nil)
+                  expect(@attachment).to receive(:instance_write).with(:updated_at, nil)
                   @attachment.assign nil
                   @attachment.save
-                  @existing_names.each{|f| assert_file_exists(f) }
+                  @existing_names.each { |f| assert_file_exists(f) }
                 end
 
                 it "keeps the files when you call #clear and #save" do
-                  @attachment.expects(:instance_write).with(:file_name, nil)
-                  @attachment.expects(:instance_write).with(:content_type, nil)
-                  @attachment.expects(:instance_write).with(:file_size, nil)
-                  @attachment.expects(:instance_write).with(:fingerprint, nil)
-                  @attachment.expects(:instance_write).with(:updated_at, nil)
+                  expect(@attachment).to receive(:instance_write).with(:file_name, nil)
+                  expect(@attachment).to receive(:instance_write).with(:content_type, nil)
+                  expect(@attachment).to receive(:instance_write).with(:file_size, nil)
+                  expect(@attachment).to receive(:instance_write).with(:fingerprint, nil)
+                  expect(@attachment).to receive(:instance_write).with(:updated_at, nil)
                   @attachment.clear
                   @attachment.save
-                  @existing_names.each{|f| assert_file_exists(f) }
+                  @existing_names.each { |f| assert_file_exists(f) }
                 end
 
                 it "keeps the files when you call #delete" do
-                  @attachment.expects(:instance_write).with(:file_name, nil)
-                  @attachment.expects(:instance_write).with(:content_type, nil)
-                  @attachment.expects(:instance_write).with(:file_size, nil)
-                  @attachment.expects(:instance_write).with(:fingerprint, nil)
-                  @attachment.expects(:instance_write).with(:updated_at, nil)
+                  expect(@attachment).to receive(:instance_write).with(:file_name, nil)
+                  expect(@attachment).to receive(:instance_write).with(:content_type, nil)
+                  expect(@attachment).to receive(:instance_write).with(:file_size, nil)
+                  expect(@attachment).to receive(:instance_write).with(:fingerprint, nil)
+                  expect(@attachment).to receive(:instance_write).with(:updated_at, nil)
                   @attachment.destroy
-                  @existing_names.each{|f| assert_file_exists(f) }
+                  @existing_names.each { |f| assert_file_exists(f) }
                 end
               end
             end
@@ -1299,7 +1326,7 @@ describe Paperclip::Attachment do
       end
 
       it "is not able to find the module" do
-        assert_raises(Paperclip::Errors::StorageMethodNotFound){ Dummy.new.avatar }
+        assert_raises(Paperclip::Errors::StorageMethodNotFound) { Dummy.new.avatar }
       end
     end
   end
@@ -1311,7 +1338,7 @@ describe Paperclip::Attachment do
       end
       rebuild_class
       @dummy = Dummy.new
-      @file = File.new(fixture_file("5k.png"), 'rb')
+      @file = File.new(fixture_file("5k.png"), "rb")
     end
 
     after { @file.close }
@@ -1343,7 +1370,7 @@ describe Paperclip::Attachment do
 
       it "returns the creation time when sent #avatar_created_at" do
         now = Time.now
-        Time.stubs(:now).returns(now)
+        allow(Time).to receive(:now).and_return(now)
         @dummy.avatar = @file
         assert_equal now.to_i, @dummy.avatar.created_at
       end
@@ -1351,9 +1378,9 @@ describe Paperclip::Attachment do
       it "returns the creation time when sent #avatar_created_at and the entry has been updated" do
         creation = 2.hours.ago
         now = Time.now
-        Time.stubs(:now).returns(creation)
+        allow(Time).to receive(:now).and_return(creation)
         @dummy.avatar = @file
-        Time.stubs(:now).returns(now)
+        allow(Time).to receive(:now).and_return(now)
         @dummy.avatar = @file
         assert_equal creation.to_i, @dummy.avatar.created_at
         assert_not_equal now.to_i, @dummy.avatar.created_at
@@ -1380,16 +1407,16 @@ describe Paperclip::Attachment do
 
       it "returns the right value when sent #avatar_updated_at" do
         now = Time.now
-        Time.stubs(:now).returns(now)
+        allow(Time).to receive(:now).and_return(now)
         @dummy.avatar = @file
         assert_equal now.to_i, @dummy.avatar.updated_at
       end
     end
 
     it "does not calculate fingerprint" do
-      Digest::MD5.stubs(:file)
+      allow(Digest::MD5).to receive(:file)
       @dummy.avatar = @file
-      expect(Digest::MD5).to have_received(:file).never
+      expect(Digest::MD5).not_to have_received(:file)
     end
 
     it "does not assign fingerprint" do
@@ -1497,7 +1524,7 @@ describe Paperclip::Attachment do
     before do
       rebuild_model preserve_files: true
       @dummy = Dummy.new
-      @file = File.new(fixture_file("5k.png"), 'rb')
+      @file = File.new(fixture_file("5k.png"), "rb")
       @dummy.avatar = @file
       @dummy.save!
       @attachment = @dummy.avatar
@@ -1527,7 +1554,7 @@ describe Paperclip::Attachment do
     before do
       rebuild_model
       @dummy = Dummy.new
-      @file = File.new(fixture_file("5k.png"), 'rb')
+      @file = File.new(fixture_file("5k.png"), "rb")
       @dummy.avatar = @file
       @dummy.save!
       @attachment = @dummy.avatar
@@ -1537,7 +1564,7 @@ describe Paperclip::Attachment do
     after { @file.close }
 
     it "is not deleted when the model fails to destroy" do
-      @dummy.stubs(:destroy).raises(Exception)
+      allow(@dummy).to receive(:destroy).and_raise(Exception)
 
       assert_raises Exception do
         @dummy.destroy

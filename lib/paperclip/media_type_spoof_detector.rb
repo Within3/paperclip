@@ -48,7 +48,6 @@ module Paperclip
       !Array(mapped_content_type).include?(calculated_content_type)
     end
 
-
     def supplied_content_type
       @content_type
     end
@@ -74,12 +73,10 @@ module Paperclip
     end
 
     def type_from_file_command
-      begin
-        Paperclip.run("file", "-b --mime :file", file: @file.path).
-          split(/[:;\s]+/).first
-      rescue Terrapin::CommandLineError
-        ""
-      end
+      Paperclip.run("file", "-b --mime :file", file: @file.path).
+        split(/[:;\s]+/).first
+    rescue Terrapin::CommandLineError
+      ""
     end
 
     def mapped_content_type
@@ -87,7 +84,7 @@ module Paperclip
     end
 
     def filename_extension
-      File.extname(@name.to_s.downcase).sub(/^\./, '').to_sym
+      File.extname(@name.to_s.downcase).sub(/^\./, "").to_sym
     end
   end
 end

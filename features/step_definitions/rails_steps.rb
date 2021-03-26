@@ -30,6 +30,14 @@ Given /^I generate a new rails application$/ do
   FileUtils.chdir("../../..")
 end
 
+Given /^I generate a "([^"]*)" model:$/ do |model_name|
+  step %[I successfully run `rails generate model #{model_name}`]
+end
+
+Given /^I run a paperclip migration to add a paperclip "([^"]*)" to the "([^"]*)" model$/ do |attachment_name, model_name|
+  step %[I successfully run `rails generate paperclip #{model_name} #{attachment_name}`]
+end
+
 Given "I allow the attachment to be submitted" do
   cd(".") do
     transform_file("app/controllers/users_controller.rb") do |content|
@@ -84,7 +92,7 @@ end
 
 Given "I empty the application.js file" do
   cd(".") do
-    transform_file("app/assets/javascripts/application.js") do |content|
+    transform_file("app/assets/javascripts/application.js") do |_content|
       ""
     end
   end
@@ -135,7 +143,7 @@ Given /^I add this snippet to the User model:$/ do |snippet|
   file_name = "app/models/user.rb"
   cd(".") do
     content = File.read(file_name)
-    File.open(file_name, 'w') { |f| f << content.sub(/end\Z/, "#{snippet}\nend") }
+    File.open(file_name, "w") { |f| f << content.sub(/end\Z/, "#{snippet}\nend") }
   end
 end
 
@@ -143,7 +151,21 @@ Given /^I add this snippet to config\/application.rb:$/ do |snippet|
   file_name = "config/application.rb"
   cd(".") do
     content = File.read(file_name)
-    File.open(file_name, 'w') {|f| f << content.sub(/class Application < Rails::Application.*$/, "class Application < Rails::Application\n#{snippet}\n")}
+    File.open(file_name, "w") do |f|
+      f << content.sub(/class Application < Rails::Application.*$/,
+                       "class Application < Rails::Application\n#{snippet}\n")
+    end
+  end
+end
+
+Given /^I replace this snippet to app\/views\/layouts\/application.html.erb:$/ do |snippet|
+  file_name = "app/views/layouts/application.html.erb"
+  cd(".") do
+    content = File.read(file_name)
+    File.open(file_name, "w") do |f|
+      f << content.sub(/<%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>$/,
+                       "#{snippet}")
+    end
   end
 end
 
@@ -166,7 +188,7 @@ When /^I turn off class caching$/ do
     config = IO.read(file)
     config.gsub!(%r{^\s*config.cache_classes.*$},
                  "config.cache_classes = false")
-    File.open(file, "w"){|f| f.write(config) }
+    File.open(file, "w") { |f| f.write(config) }
   end
 end
 
@@ -186,10 +208,8 @@ When /^I configure the application to use "([^\"]+)"$/ do |gem_name|
 end
 
 When /^I append gems from Appraisal Gemfile$/ do
-  File.read(ENV['BUNDLE_GEMFILE']).split(/\n/).each do |line|
-    if line =~ /^gem "(?!rails|appraisal)/
-      append_to_gemfile line.strip
-    end
+  File.read(ENV["BUNDLE_GEMFILE"]).split(/\n/).each do |line|
+    append_to_gemfile line.strip if line =~ /^gem "(?!rails|appraisal)/
   end
 end
 
